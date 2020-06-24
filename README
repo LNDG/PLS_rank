@@ -1,9 +1,10 @@
-An implementation of partial least squares analysis for neuroimaging data in Matlab. The package has some quirks in the graphical user interface in R2014b and above which have been partially ironed out in this fork.
+This is an LNDG-driven version of the PLS package that includes a beta release of rank-order enabled behavioral PLS...more info and details to come. 
 
-For information on the package:
+
+For information on PLS in general:
 
 https://www.rotman-baycrest.on.ca/index.php?section=84
 
-For a discussion of the method:
+For a discussion of the PLS method in general:
 
 McIntosh, A. R., & Lobaugh, N. J. (2004). Partial least squares analysis of neuroimaging data: applications and advances. NeuroImage, 23, S250–S263. http://doi.org/10.1016/j.neuroimage.2004.07.020
