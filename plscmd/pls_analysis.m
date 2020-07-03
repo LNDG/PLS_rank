@@ -27,7 +27,7 @@
 %	option.stacked_designdata = ( 2-D numerical matrix )
 %	option.stacked_behavdata = ( 2-D numerical matrix )
 %	option.meancentering_type = [0] | 1 | 2 | 3
-%	option.cormode = [0] | 2 | 4 | 6 | 8 
+%	option.cormode = [0] | 2 | 4 | 6
 %	option.boot_type = ['strat'] | 'nonstrat'
 %	
 %	Options description in detail:
@@ -173,10 +173,9 @@
 %		2. covaraince
 %		4. cosine angle
 %		6. dot product
-%       8. Spearman correlation
-%
+%       8. Spearman rank correlation
 %		If it is not specified, program will use default value 0.
-%		This option can be applied to method 3, 4, 5, and 6.
+%		This option can be applied to method 3, 4, 5, 6, 8.
 %
 %	boot_type: 'strat' (default for standard PLS approach), or
 %		'nonstrat' for nonstratified boot samples.
@@ -563,6 +562,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
    %
    num_groups = length(datamat_lst);
    total_rows = 0;
+   
 
    %  total rows in stacked datamat (extract datamat from each group,
    %  and stacked them together)
@@ -570,6 +570,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
    for g = 1:num_groups
       total_rows = total_rows + size(datamat_lst{g}, 1);
    end
+   
 
    if ismember(method,[3 4 5 6])
       if size(stacked_behavdata,1) ~= total_rows
@@ -715,6 +716,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
    result.method = method;
    result.is_struct = is_struct;
 
+
    single_cond_lst = {};
 
    %  for single condition with multiple groups situation, reconstruct datamat
@@ -738,6 +740,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
   %    num_groups = 1;
 
       tmp = [];
+
 
 %      for g=1:k
       for g = 1:num_groups
@@ -801,13 +804,14 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
 		'Calculating Covariance / Correlation data ...');
    end
    
-    % Added rank value conversion, Fabian Kamp
-   if cormode == 8 
+   % Added rank value conversion, Fabian Kamp
+    if cormode == 8 
         % TODO: in the beginning check if cormode == 8 and behav data FALSE
-       [stacked_datamat, stacked_behavdata] = fk_rankvalues(stacked_datamat, ...
-       stacked_behavdata, num_groups, num_cond, num_subj_lst);
-       cormode = 0;
-   end
+        [stacked_datamat, stacked_behavdata] = fk_rankvalues(stacked_datamat, ...
+        stacked_behavdata, num_groups, num_cond, num_subj_lst);
+        cormode = 0;
+    end 
+    
 
    datamat_reorder = [1:size(stacked_datamat,1)]';
 
@@ -1098,6 +1102,10 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
 
    end
 
+   % Compute correlations of usc * vsc, Fabian 
+   lvlvcorr = fk_getlvlvcorr(usc, vsc);
+   result.lvlvcorr = lvlvcorr;
+   
    %  save Scores for all situations
    %
    result.usc = usc;
@@ -1801,10 +1809,15 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
 
       if ismember(method, [3 4 5 6])
          orig_corr = lvcorrs;
-
-         [r1 c1] = size(orig_corr);
+         [r1, c1] = size(orig_corr);
          distrib = zeros(r1, c1, num_boot+1);
          distrib(:, :, 1) = orig_corr;
+         
+         %fabian: distribution is initiliazed here
+         orig_lvlvcorr = lvlvcorr;
+         [r1, c1] = size(orig_lvlvcorr);
+         lvlvcorrdistrib = zeros(r1, c1, num_boot+1);
+         lvlvcorrdistrib(:, :, 1) = orig_lvlvcorr;
       end
 
       if ismember(method, [1 2 4 6])
@@ -1958,7 +1971,8 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
       if isempty(progress_hdl)
          pcntacc = fprintf('Working on %d bootstraps:', num_boot);
       end
-
+      
+      %fabian
       for p=1:num_boot
 
          if isempty(progress_hdl)
@@ -2315,6 +2329,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
             pu = pu * sboot * rotatemat;
             pv = pv * sboot * rotatemat;
 
+            %fabian: here the distribution of bcorr values is calculated
             if ismember(method,[3 4])
                data_p = stacked_datamat(datamat_reorder_4beh(row_idx),:);
                behav_p = stacked_behavdata(behavdata_reorder(row_idx),:);
@@ -2332,7 +2347,10 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
 			ssb_rri_get_behavscores(data_p, behav_p, ...
 			normalize(pu), normalize(pv), kk, num_subj_lst_4beh, cormode);
                end
-
+               
+               %fabian: calculate the lvlvcorr using the brain/behavscores
+               lvlvcorrdistrib(:,:,p+1) = fk_getlvlvcorr(brainsctmp, behavsctmp);
+               
                distrib(:, :, p+1) = bcorr;
 
                if method == 4
@@ -2487,9 +2505,15 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
       if ismember(method, [1 2])
          [llusc, ulusc, prop, llusc_adj, ulusc_adj] = ...
             rri_distrib(distrib, ll, ul, num_boot, climNi, orig_usc);
+      % fabian: here the upper and lower limits are extracted from the
+      % distribution
       else
          [llcorr, ulcorr, prop, llcorr_adj, ulcorr_adj] = ...
             rri_distrib(distrib, ll, ul, num_boot, climNi, orig_corr);
+        
+         [ll_lvlvcorr, ul_lvlvcorr, lvlvcorrprop, ll_lvlvcorr_adj, ul_lvlvcorr_adj] = ...
+            rri_distrib(lvlvcorrdistrib, ll, ul, num_boot, climNi, orig_lvlvcorr);  
+        
       end
 
       %  loop to calculate upper and lower CI limits for multiblock PLS
@@ -2502,10 +2526,17 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
       if ismember(method, [3 4 5 6])
 
          result.boot_result.orig_corr = orig_corr;
+         result.boot_result.orig_lvlvcorr = orig_lvlvcorr;
+         % fabian: here the upper and lower limits are saved to the results
          result.boot_result.ulcorr = ulcorr;
          result.boot_result.llcorr = llcorr;
          result.boot_result.ulcorr_adj = ulcorr_adj;
          result.boot_result.llcorr_adj = llcorr_adj;
+         result.boot_result.ul_lvlvcorr = ul_lvlvcorr;
+         result.boot_result.ll_lvlvcorr = ll_lvlvcorr;
+         result.boot_result.ul_lvlvcorr_adj = ul_lvlvcorr_adj;
+         result.boot_result.ll_lvlvcorr_adj = ll_lvlvcorr_adj;
+         
          result.boot_result.badbeh = badbeh;
          result.boot_result.countnewtotal = countnewtotal;
          result.boot_result.bootsamp_4beh = reorder_4beh;
@@ -2538,6 +2569,8 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
       result.boot_result.distrib = distrib;
       result.boot_result.bootsamp = reorder;
 
+      result.boot_result.lvlvcorrprop = lvlvcorrprop;
+      result.boot_result.lvlvcorrdistrib = lvlvcorrdistrib;
       % result.boot_result.u_sum2 = u_sum2;
       % result.boot_result.v_sum2 = v_sum2;
 
