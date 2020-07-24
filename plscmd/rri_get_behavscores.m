@@ -32,7 +32,12 @@ function [scores, fscores, lvcorrs] = ...
     lvcorrs = [];
 
     num_groups = length(num_subj_lst);
-
+    
+    if cormode == 8
+        ranked_scores = fk_rankvalues(scores, num_groups, k, num_subj_lst);
+    end
+    
+    
     for g = 1:num_groups
 
 	n = num_subj_lst(g);
@@ -48,11 +53,19 @@ function [scores, fscores, lvcorrs] = ...
 	end
 
 	fscores = [fscores; tmp];
-
-	tmp = rri_corr_maps(stacked_behavdata(1 + span : n*k + span, :), ...
-				scores(1 + span : n*k + span, :), n, k, cormode);
-	lvcorrs = [lvcorrs; tmp];
-
+    
+    
+    if cormode == 8
+        tmp = rri_corr_maps(stacked_behavdata(1 + span : n*k + span, :), ...
+                    ranked_scores(1 + span : n*k + span, :), n, k, cormode);
+        lvcorrs = [lvcorrs; tmp];
+        
+    else 
+        tmp = rri_corr_maps(stacked_behavdata(1 + span : n*k + span, :), ...
+                    scores(1 + span : n*k + span, :), n, k, cormode);
+        lvcorrs = [lvcorrs; tmp];
+    end
+    
     end
 
     return;

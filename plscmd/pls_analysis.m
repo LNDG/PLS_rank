@@ -806,10 +806,11 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
    
    % Added rank value conversion, Fabian Kamp
     if cormode == 8 
-        % TODO: in the beginning check if cormode == 8 and behav data FALSE
-        [stacked_datamat, stacked_behavdata] = fk_rankvalues(stacked_datamat, ...
-        stacked_behavdata, num_groups, num_cond, num_subj_lst);
-        cormode = 0;
+        stacked_datamat = fk_rankvalues(stacked_datamat, ...
+        num_groups, num_cond, num_subj_lst);
+    
+        stacked_behavdata = fk_rankvalues(stacked_behavdata, ... 
+            num_groups, num_cond, num_subj_lst);
     end 
     
 

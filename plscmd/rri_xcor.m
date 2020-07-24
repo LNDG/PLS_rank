@@ -16,7 +16,7 @@ if ~exist('cormode','var'), cormode=0; end;
 
 
   switch cormode
-   case 0
+   case {0, 8}
 
 
 avg=mean(datamat);

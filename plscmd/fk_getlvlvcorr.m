@@ -6,6 +6,7 @@ if size(usc) ~= size(vsc)
     error('Latent Variables must have the same size');
 end
 
+
 [n_rows, n_cols] = size(usc);
 usc_avg = mean(usc);
 usc_std = std(usc);
@@ -21,4 +22,5 @@ end
 
 %Correlation as xproduct
 xprod = usc'*vsc;
-lvlvcorr = xprod./(n_rows-1);
+corrmat = xprod./(n_rows-1);
+lvlvcorr = diag(corrmat);
