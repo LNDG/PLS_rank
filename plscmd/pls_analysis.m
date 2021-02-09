@@ -27,7 +27,7 @@
 %	option.stacked_designdata = ( 2-D numerical matrix )
 %	option.stacked_behavdata = ( 2-D numerical matrix )
 %	option.meancentering_type = [0] | 1 | 2 | 3
-%	option.cormode = [0] | 2 | 4 | 6
+%	option.cormode = [0] | 2 | 4 | 6 | 8 
 %	option.boot_type = ['strat'] | 'nonstrat'
 %	
 %	Options description in detail:
@@ -1104,7 +1104,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
    end
 
    % Compute correlations of usc * vsc, Fabian 
-   lvlvcorr = fk_getlvlvcorr(usc, vsc);
+   lvlvcorr = fk_getlvlvcorr(usc, vsc, cormode);
    result.lvlvcorr = lvlvcorr;
    
    %  save Scores for all situations
@@ -2350,7 +2350,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
                end
                
                %fabian: calculate the lvlvcorr using the brain/behavscores
-               lvlvcorrdistrib(:,:,p+1) = fk_getlvlvcorr(brainsctmp, behavsctmp);
+               lvlvcorrdistrib(:,:,p+1) = corr(brainsctmp, behavsctmp);
                
                distrib(:, :, p+1) = bcorr;
 

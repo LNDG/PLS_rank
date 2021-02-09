@@ -1,9 +1,14 @@
-function lvlvcorr = fk_getlvlvcorr(usc, vsc)
+function lvlvcorr = fk_getlvlvcorr(usc, vsc, cormode)
 % Correlates the latent variables columnwise
 % Input: left and right latent variables
 
 if size(usc) ~= size(vsc)
     error('Latent Variables must have the same size');
+end
+
+if cormode == 8
+    usc = tiedrank(usc);
+    vsc = tiedrank(vsc);
 end
 
 
