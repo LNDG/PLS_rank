@@ -2537,6 +2537,8 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
          result.boot_result.ll_lvlvcorr = ll_lvlvcorr;
          result.boot_result.ul_lvlvcorr_adj = ul_lvlvcorr_adj;
          result.boot_result.ll_lvlvcorr_adj = ll_lvlvcorr_adj;
+         result.boot_result.lvlvcorrprop = lvlvcorrprop;
+         result.boot_result.lvlvcorrdistrib = lvlvcorrdistrib;
          
          result.boot_result.badbeh = badbeh;
          result.boot_result.countnewtotal = countnewtotal;
@@ -2569,9 +2571,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
       result.boot_result.prop = prop;
       result.boot_result.distrib = distrib;
       result.boot_result.bootsamp = reorder;
-
-      result.boot_result.lvlvcorrprop = lvlvcorrprop;
-      result.boot_result.lvlvcorrdistrib = lvlvcorrdistrib;
+      
       % result.boot_result.u_sum2 = u_sum2;
       % result.boot_result.v_sum2 = v_sum2;
 
