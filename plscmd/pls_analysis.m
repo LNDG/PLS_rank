@@ -2350,7 +2350,7 @@ function result = pls_analysis(datamat_lst, num_subj_lst, k, opt)
                end
                
                %fabian: calculate the lvlvcorr using the brain/behavscores
-               lvlvcorrdistrib(:,:,p+1) = corr(brainsctmp, behavsctmp);
+               lvlvcorrdistrib(:,:,p+1) = fk_getlvlvcorr(brainsctmp, behavsctmp, cormode);
                
                distrib(:, :, p+1) = bcorr;
 
